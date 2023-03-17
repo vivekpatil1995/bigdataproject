@@ -23,7 +23,7 @@ jobs:
         with:
           aws-access-key-id: ASIAVOPT5DC3DCUH4PHN
           aws-secret-access-key: GOUQJaO0N1AyUm/PkggQEafbu/Py9MLLLyea1wpR 
-          #aws-session-token: FwoGZXIvYXdzEHgaDPYPMEHhghkT7WrWGyLNAV5vPaUwaJIJb96hRItFxVeqPLD9cUDaU4vCAU9DsNE+ZGZOojjan28CcDGW8+xON5Gcwt7tvVGZT7LirxTSrlhvuRfBj7TSDB/+LBADuXV7cMX1haFnG8QlM35hPthCc1S8UZWEzPelmkiVIzmYwscst+AGYd9oZ8hG1kO/aOhal87JeiU/md0a2cebhWswGovKX6GXBi1FMjqpPGYzMfL9WN0Ss9CgFEqPdLh9eou8R+LZGHbpNiFnnHIZ5cStqMm0EZBlV5v0iJBJxBMosvrRoAYyLRVV7RuCZ/s0agd9nEVbkI3bcUgxK9Rb0AQfRSTgh+rMWKHu/6zQ6yM+fOpT3w==
+          # aws-session-token: FwoGZXIvYXdzEHgaDPYPMEHhghkT7WrWGyLNAV5vPaUwaJIJb96hRItFxVeqPLD9cUDaU4vCAU9DsNE+ZGZOojjan28CcDGW8+xON5Gcwt7tvVGZT7LirxTSrlhvuRfBj7TSDB/+LBADuXV7cMX1haFnG8QlM35hPthCc1S8UZWEzPelmkiVIzmYwscst+AGYd9oZ8hG1kO/aOhal87JeiU/md0a2cebhWswGovKX6GXBi1FMjqpPGYzMfL9WN0Ss9CgFEqPdLh9eou8R+LZGHbpNiFnnHIZ5cStqMm0EZBlV5v0iJBJxBMosvrRoAYyLRVV7RuCZ/s0agd9nEVbkI3bcUgxK9Rb0AQfRSTgh+rMWKHu/6zQ6yM+fOpT3w==
           aws-region: 'us-east-1' 
 
       # Deploy to AWS CloudFormation
