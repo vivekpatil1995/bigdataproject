@@ -1,0 +1,62 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+
+  GlueJob:
+    Type: 'AWS::Glue::Job'   
+    Properties:
+      Role: 'LabRole'   
+      Command:   
+        Name: glueetl
+        ScriptLocation: !Sub 's3://tempairbnb/updated-gluescript.py'
+      AllocatedCapacity: 5  
+      ExecutionProperty:   
+        MaxConcurrentRuns: 2  
+      Name: 'cleaning-data'
+      GlueVersion: 3.0
+
+  MyCrawler1:
+    Type: AWS::Glue::Crawler
+    Properties:
+      Name: locationcraw11
+      Role: arn:aws:iam::374710540470:role/LabRole
+      Targets:
+        S3Targets:
+          - Path: s3://bucketforprojectproject/project/location.parquet/
+      DatabaseName: cftDB11
+      SchemaChangePolicy:
+        UpdateBehavior: UPDATE_IN_DATABASE
+        DeleteBehavior: DEPRECATE_IN_DATABASE
+
+
+  MyWorkflow:
+    Type: AWS::Glue::Workflow
+    Properties: 
+      Description: "workflow create"
+      MaxConcurrentRuns: 5
+      Name: "myworkflow"
+
+  WorkflowStartTrigger:
+    Type: AWS::Glue::Trigger
+    Properties:
+      Name: 'StartTrigger'
+      Type: ON_DEMAND
+      Description: 'Trigger for starting the workflow'
+      Actions:
+        - JobName: !Ref GlueJob
+      WorkflowName: !Ref MyWorkflow
+
+  LocationTrigger:
+    Type: AWS::Glue::Trigger
+    Properties:
+      Name: 'JobSuccessfulTrigger'
+      Type: CONDITIONAL
+      StartOnCreation: TRUE
+      Description: 'Trigger to start the crawler'
+      Actions:
+        - CrawlerName: !Ref MyCrawler1
+      Predicate:
+        Conditions:
+          - LogicalOperator: EQUALS
+            JobName: !Ref GlueJob
+            State: SUCCEEDED
+      WorkflowName: !Ref MyWorkflow
