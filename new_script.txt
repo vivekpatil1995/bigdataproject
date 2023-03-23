@@ -1,0 +1,159 @@
+import os
+import numpy as np
+import datetime as dt
+import time
+import pyspark.sql.functions as F
+from pyspark.context import SparkContext, SparkConf
+from pyspark.sql import *
+from pyspark.sql.types import *
+from pyspark.sql.functions import *
+
+#loading profile table
+profiles_schema=StructType([
+    StructField('sid_profile', LongType(), True),
+    StructField('profile_id', LongType(), True),
+    StructField('profile_name', StringType(), True),
+    StructField('firstname_lastname', StringType(), True),
+    StructField('description_profile', StringType(), True),
+    StructField('following', IntegerType(), True),
+    StructField('followers', IntegerType(), True),
+    StructField('n_posts', IntegerType(), True),
+    StructField('url_profile', StringType(), True),
+    StructField('cts_profile', TimestampType(), True),
+    StructField('is_business_account', StringType(), True)
+])
+prof = spark.read.load("s3://newprojectgrp6/data/instagram_database/profile_csv/instagram_profiles.csv", \
+    format="csv", 
+    sep="\t",
+    schema=profiles_schema,
+    header="true")
+
+#loading post table
+post_schema = StructType([
+    StructField('sid_post',  LongType(), False),
+    StructField('sid_profile_post',  LongType(), False),
+    StructField('post_id', StringType(), False),
+    StructField('profile_id',  LongType(), False),
+    StructField('location_id',  LongType(), True),
+    StructField('cts_post', TimestampType(), False),
+    StructField('post_type', IntegerType(), True),
+    StructField('description_post', StringType(), True),
+    StructField('numbr_likes',  LongType(), True),
+    StructField('number_comments', IntegerType(), True)
+])
+
+posts = spark.read.load("s3://newprojectgrp6/data/instagram_database/post_csv/instagram_posts.csv", \
+    format="csv", 
+    sep="\t",
+    schema=post_schema,
+    header="true")
+
+
+#loading location table
+loc_schema=StructType([
+    StructField('sid_loc', LongType(), True),
+    StructField('location_id', LongType(), True),
+    StructField('name', StringType(), True),
+    StructField('street', StringType(), True),
+    StructField('zip', StringType(), True),
+    StructField('city', StringType(), True),
+    StructField('region', StringType(), True),
+    StructField('cd', StringType(), True),
+    StructField('phone', StringType(), True),
+    StructField('aj_exact_city_match', StringType(), True),
+    StructField('aj_exact_country_match', StringType(), True),
+    StructField('blurb', StringType(), True),
+    StructField('dir_city_id', StringType(), True),
+    StructField('dir_city_name', StringType(), True),
+    StructField('dir_city_slug', StringType(), True),
+    StructField('dir_country_id', StringType(), True),
+    StructField('dir_country_name', StringType(), True),
+    StructField('lat', DoubleType(), True), 
+    StructField('lng', DoubleType(), True),
+    StructField('primary_alias_on_fb', StringType(), True),
+    StructField('slug', StringType(), True),
+    StructField('website', StringType(), True),
+    StructField('cts_loc', TimestampType(), True)
+])
+
+loc=spark.read.load("s3://bigdatapro/locations/instagram_locations.csv",format="csv",sep="\t",schema=loc_schema,header="true")
+
+
+#joining tables
+joindf=posts.join(prof,"profile_id","inner")
+main=joindf.join(loc,"location_id","inner")
+
+
+
+main = main.dropna(subset=['followers'])
+main = main.dropna(subset=['following'])
+main = main.dropna(subset=['n_posts','numbr_likes','number_comments'])
+main = main.withColumn("firstname_lastname", when(col("firstname_lastname").isNull(), col("profile_name")).otherwise(col("firstname_lastname")))
+main = main.fillna({'is_business_account': 'false'})
+main = main.fillna({'description_post': 'Not Available'})
+main = main.fillna({'description_profile': 'Not Available'})
+main = main.fillna({'phone': 'Not Available'})
+main = main.fillna({'url_profile': 'Not Available'})
+main = main.fillna({'website': 'Not Available'})
+main = main.drop("aj_exact_city_match","aj_exact_country_match")
+main = main.fillna({'street': 'Not Available'})
+main = main.fillna({'blurb': 'Not Available'})
+
+
+import pyspark.sql.functions as F
+na_counts = main.agg(*[F.sum(F.col(c).isNull().cast("integer")).alias(c) for c in main.columns])
+#na_counts.show(vertical=True)
+
+
+from pyspark.sql.functions import col
+
+# Load the original table
+
+# Identify the primary key and dependent columns
+primary_key = "location_id"
+dependent_columns = ["location_id","profile_id","sid_post","sid_profile_post","post_id","cts_post","post_type","description_post","numbr_likes","number_comments","sid_profile","profile_name","firstname_lastname","description_profile","following","followers","n_posts","url_profile","cts_profile","is_business_account","sid_loc","name","street","zip","city","region","cd","phone","blurb","dir_city_id","dir_city_name","dir_city_slug","dir_country_id","dir_country_name","lat","lng","primary_alias_on_fb","slug","website","cts_loc" ]
+
+# Create separate tables for each dependent column
+location = main.select(primary_key, "sid_loc","name","street","zip","city","region","cd","phone","blurb","dir_city_id","dir_city_name","dir_city_slug","dir_country_id","dir_country_name","lat","lng","primary_alias_on_fb","slug","website","cts_loc").distinct()
+
+
+post_profile = main.select(primary_key, "profile_id","sid_post","sid_profile_post","post_id","cts_post","post_type","description_post","numbr_likes","number_comments","sid_profile","profile_name","firstname_lastname","description_profile","following","followers","n_posts","url_profile","cts_profile","is_business_account").distinct()
+
+
+
+# Link the tables together using the primary key
+normalized_main = main.select(primary_key, *dependent_columns).distinct()
+normalized_main = normalized_main.join(location, [primary_key], "left")
+normalized_main = normalized_main.join(post_profile, [primary_key], "left")
+
+# Drop redundant columns
+normalized_main = normalized_main.drop(*dependent_columns)
+
+import pyspark.sql.functions as F
+#na_counts = location.agg(*[F.sum(F.col(c).isNull().cast("integer")).alias(c) for c in location.columns])
+#na_counts.show(vertical=True)
+
+
+
+primary_key = "profile_id"
+dependent_columns = ["location_id","sid_post","sid_profile_post","post_id","cts_post","post_type","description_post","numbr_likes","number_comments","sid_profile","profile_name","firstname_lastname","description_profile","following","followers","n_posts","url_profile","cts_profile","is_business_account"]
+
+#Seperating profiles table 
+profiles = post_profile.select(primary_key, "sid_profile","profile_name","firstname_lastname","description_profile","following","followers","n_posts","url_profile","cts_profile","is_business_account").distinct()
+#Seperating posts table 
+posts = post_profile.select(primary_key,"location_id","sid_post","sid_profile_post","post_id","cts_post","post_type","description_post","numbr_likes","number_comments").distinct()
+
+normalized_main1 = post_profile.select(primary_key, *dependent_columns).distinct()
+normalized_main1 = normalized_main1.join(profiles, [primary_key], "left")
+normalized_main1 = normalized_main1.join(posts, [primary_key], "left")
+
+# Drop redundant columns
+normalized_main1 = normalized_main1.drop(*dependent_columns)
+
+location = location.withColumn('address_array', split(df['city'], ', '))
+location = location.withColumn('dir_city', df['address_array'][0])
+location=location.drop("address_array","city")
+
+location.write.parquet("s3://instagramoutput1/locations.parquet")
+profiles.write.parquet("s3://instagramoutput1/profiles.parquet")
+posts.write.parquet("s3://instagramoutput1/posts.parquet")
