@@ -1,9 +1,0 @@
-Resources:
-  Bucket1:
-    Type: "AWS::S3::Bucket"
-    Properties:
-      BucketName: "input-csv-bucket"
-  Bucket2:
-    Type: "AWS::S3::Bucket"
-    Properties:
-      BucketName: "output-parquet-bucket"
