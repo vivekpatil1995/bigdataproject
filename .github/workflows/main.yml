@@ -21,9 +21,9 @@ jobs:
         id: creds
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          aws-access-key-id: ASIAVOPT5DC3N2CS2C4F
-          aws-secret-access-key: qX86fa/OkAKTubSY3Fmx3iF8YIg8aBzfsdvQA0Xv
-          aws-session-token: FwoGZXIvYXdzEAAaDE2UDYZ/4x2IpXJJHyLNAcWRc4oA5mETfKRXd9O40tOVdmJ1sipRyBJIiK4X8mg3NoZKfHerM0SdNYZ1QoJpnnIeX0wVYx6P0kQ46s8v2PxWzk1v8MTZ2DGovGQobHYyfiB/ZVH/ZpT4mBzIY4ZUEvEgf3fzwhvcyZ1QHk3IWklY/2dUYPFWNNBHrbhlqx5i7LkURNhkfqjRG9t8JxfRxkXGb6JoViAA0N7bFoJiZr7bwIFES3S1gx3TgFHKEQJrYKCiZ6PGYzobAj/aamTZAP+6xtGA+UGTawA3kfIorOvvoAYyLVP1oE5U1nDNjeF5obIEjsWOamIXzZPLmSQzB0gOgUqCc3F2MNgfFQNjUitQKg==
+          aws-access-key-id: ASIAVOPT5DC3DZH7MGIS
+          aws-secret-access-key: AliBG7oPxStXRGShkTCTeORdojSnSNjENYKsA8Ux
+          aws-session-token: FwoGZXIvYXdzEAUaDDJXwtrKqL8PHEzejyLNAdLkbS7uJMhpWtoyu0mEKbL/ma5brOmQfA72xH4eGbaDqi6deznuSZaFA0MRAhuC11O/hyvT0PH0QMgd7sqYiLoEUROz0PB4Pv92HoY9SieREVoBuUupncvbh8QjukoFXD6Yk8ZTuQ2vFtvbx7VMOxOZ3mYJWjf6XQSFPU8IB5k3OBbTc8Q7YeeLyj9XOZjV4Y5wFwLFlwqZn+im906nqwlZCjIuOItVIKest1696B6ORD8g2njsBPsyu1cNGnIFPvc3fk04sc5LOZSU0iYo9fbwoAYyLapyF9mn2fsaiW2omMeGd0rGtMcpA8LMRStgFAanX+K4HtfoHncfgDXYivwc0w==
           aws-region: 'us-east-1' 
 
       # Deploy to AWS CloudFormation
@@ -31,6 +31,6 @@ jobs:
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
           name: test-stack
-          template: lamdacreate.yaml
+          template: BigDataFinalCFT.yaml
           no-fail-on-empty-changeset: "1"
           
